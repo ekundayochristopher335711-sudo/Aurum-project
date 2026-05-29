@@ -4,13 +4,14 @@ import {
   FileText, Bell, ClipboardList, GitBranch, ChevronRight,
 } from 'lucide-react'
 
-function NavItem({ to, icon: Icon, label, end = false }: { to: string; icon: React.ElementType; label: string; end?: boolean }) {
+function NavItem({ to, icon: Icon, label, end = false, onClose }: { to: string; icon: React.ElementType; label: string; end?: boolean; onClose?: () => void }) {
   return (
     <NavLink
       to={to}
       end={end}
+      onClick={onClose}
       className={({ isActive }) =>
-        `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg mx-3 transition-all ${
+        `flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg mx-3 transition-all ${
           isActive
             ? 'bg-white/10 text-white'
             : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -55,11 +56,11 @@ function ProjectNav({ projectId }: { projectId: string }) {
   )
 }
 
-export default function Sidebar() {
+export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const { projectId } = useParams()
 
   return (
-    <div className="w-56 bg-navy-900 flex flex-col shrink-0 border-r border-white/5">
+    <div className="w-64 lg:w-56 h-full bg-navy-900 flex flex-col shrink-0 border-r border-white/5">
       {/* Logo */}
       <div className="px-5 py-5 border-b border-white/5">
         <div className="flex items-center gap-3">

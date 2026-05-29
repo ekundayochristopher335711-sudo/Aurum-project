@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { LogOut, ChevronDown } from 'lucide-react'
+import { LogOut, Menu } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 
 const roleLabelMap: Record<string, string> = {
@@ -8,17 +8,27 @@ const roleLabelMap: Record<string, string> = {
   VIEWER: 'Viewer',
 }
 
-export default function Header() {
+export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
-
   return (
-    <header className="h-13 bg-white border-b border-slate-100 flex items-center justify-end px-6 shrink-0 gap-3">
+    <header className="h-14 bg-white border-b border-slate-100 flex items-center justify-between px-4 lg:px-6 shrink-0 gap-3">
+      {/* Mobile menu button */}
+      <button
+        onClick={onMenuClick}
+        className="lg:hidden p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
+      >
+        <Menu className="w-5 h-5" />
+      </button>
+
+      <div className="flex-1 lg:hidden flex items-center gap-2">
+        <img src="/logo.svg" alt="Aurum" className="w-6 h-6" />
+        <span className="text-sm font-semibold text-slate-800">Aurum</span>
+      </div>
+
+      <div className="hidden lg:block flex-1" />
+
       {user && (
         <div className="flex items-center gap-2">
           <div className="text-right hidden sm:block">
@@ -29,9 +39,9 @@ export default function Header() {
             {user.name.charAt(0).toUpperCase()}
           </div>
           <button
-            onClick={handleLogout}
+            onClick={() => { logout(); navigate('/login') }}
             title="Sign out"
-            className="ml-1 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           >
             <LogOut className="w-4 h-4" />
           </button>
