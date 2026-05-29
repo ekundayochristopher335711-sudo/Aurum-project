@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { Eye, EyeOff } from 'lucide-react'
 import { login } from '../../api/auth'
 import { useAuthStore } from '../../store/authStore'
+import LogoSpinner from '../../components/ui/LogoSpinner'
 
 const schema = z.object({
   email: z.string().email('Invalid email address'),
@@ -134,9 +135,14 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold text-navy-900 gradient-brand hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed shadow-sm mt-2"
+              className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold text-navy-900 gradient-brand hover:opacity-90 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed shadow-sm mt-2 flex items-center justify-center gap-2"
             >
-              {isSubmitting ? 'Signing in…' : 'Sign in'}
+              {isSubmitting ? (
+                <>
+                  <LogoSpinner />
+                  Signing in…
+                </>
+              ) : 'Sign in'}
             </button>
           </form>
 

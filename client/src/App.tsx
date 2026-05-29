@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
+import { Suspense } from 'react'
+import { PageLoader } from './components/ui/LogoSpinner'
 import Layout from './components/layout/Layout'
 import LoginPage from './pages/auth/LoginPage'
 import AcceptInvitationPage from './pages/invitations/AcceptInvitationPage'
@@ -21,6 +23,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter>
+      <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/accept-invitation/:token" element={<AcceptInvitationPage />} />
@@ -44,6 +47,7 @@ export default function App() {
           <Route path="projects/:projectId/ce-whatif" element={<CEWhatIfPage />} />
         </Route>
       </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }
