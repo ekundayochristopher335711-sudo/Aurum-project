@@ -1,0 +1,227 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  COMMERCIAL_MANAGER
+  VIEWER
+}
+
+enum ContractType {
+  NEC3
+  NEC4
+}
+
+enum EWStatus {
+  OPEN
+  MITIGATED
+  CLOSED
+}
+
+enum RiskStatus {
+  OPEN
+  MITIGATED
+  CLOSED
+}
+
+enum CEStatus {
+  NOTIFIED
+  QUOTED
+  ASSESSED
+  IMPLEMENTED
+  CLOSED
+}
+
+enum NoticeType {
+  EARLY_WARNING
+  COMPENSATION_EVENT
+  INSTRUCTION
+  ACCEPTANCE
+  REJECTION
+  QUOTATION
+  ASSESSMENT
+  GENERAL
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(VIEWER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projectMembers ProjectMember[]
+  auditLogs      AuditLog[]
+}
+
+model Project {
+  id             String       @id @default(cuid())
+  name           String
+  description    String?
+  contractType   ContractType @default(NEC4)
+  clientName     String?
+  contractorName String?
+  startDate      DateTime?
+  endDate        DateTime?
+  contractValue  Float?
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  members            ProjectMember[]
+  invitations        Invitation[]
+  earlyWarnings      EarlyWarning[]
+  riskItems          RiskItem[]
+  compensationEvents CompensationEvent[]
+  notices            Notice[]
+  auditLogs          AuditLog[]
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  userId    String
+  projectId String
+  role      Role     @default(VIEWER)
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+}
+
+model EarlyWarning {
+  id           String   @id @default(cuid())
+  ewNumber     String
+  projectId    String
+  title        String
+  description  String
+  raisedBy     String
+  assignedTo   String?
+  dateRaised   DateTime
+  dateRequired DateTime?
+  status       EWStatus @default(OPEN)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  riskItems RiskItem[]
+
+  @@unique([projectId, ewNumber])
+}
+
+model RiskItem {
+  id             String     @id @default(cuid())
+  riskId         String
+  projectId      String
+  earlyWarningId String?
+  description    String
+  probability    Int
+  costImpact     Float?
+  timeImpact     Int?
+  mitigation     String?
+  owner          String?
+  status         RiskStatus @default(OPEN)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  earlyWarning EarlyWarning? @relation(fields: [earlyWarningId], references: [id])
+
+  @@unique([projectId, riskId])
+}
+
+model CompensationEvent {
+  id              String   @id @default(cuid())
+  ceNumber        String
+  projectId       String
+  title           String
+  description     String
+  clauseRef       String?
+  dateNotified    DateTime
+  dateResponseDue DateTime?
+  valuationAmount Float?
+  status          CEStatus @default(NOTIFIED)
+  notifiedBy      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  notices   Notice[]
+  documents Document[]
+
+  @@unique([projectId, ceNumber])
+}
+
+model Notice {
+  id           String     @id @default(cuid())
+  noticeNumber String
+  projectId    String
+  ceId         String?
+  type         NoticeType
+  title        String
+  content      String
+  issuedBy     String
+  issuedTo     String
+  dateIssued   DateTime
+  dueDate      DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  project Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  ce      CompensationEvent? @relation(fields: [ceId], references: [id])
+
+  @@unique([projectId, noticeNumber])
+}
+
+model Document {
+  id         String   @id @default(cuid())
+  ceId       String
+  name       String
+  path       String
+  size       Int
+  mimeType   String
+  uploadedBy String
+  createdAt  DateTime @default(now())
+
+  ce CompensationEvent @relation(fields: [ceId], references: [id], onDelete: Cascade)
+}
+
+model Invitation {
+  id         String    @id @default(cuid())
+  email      String
+  projectId  String
+  role       Role      @default(VIEWER)
+  token      String    @unique @default(cuid())
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  invitedBy  String
+  createdAt  DateTime  @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  projectId  String?
+  entityType String
+  entityId   String
+  action     String
+  changes    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id])
+  project Project? @relation(fields: [projectId], references: [id])
+}
